@@ -1,3 +1,9 @@
+/*
+ * Alias environment manager.
+ *
+ * Author: Pranav Kumar <pmkumar@cmu.edu>
+ */
+
 use clap::clap_app;
 use clap::AppSettings;
 use scan_fmt::scan_fmt;
@@ -8,18 +14,21 @@ use std::env;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io;
-use std::io::{BufRead, BufReader};
 use std::io::prelude::*;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-
 
 mod lib;
 
-const ROOT_DIR: &str = ".alienv";
-const ENV_VAR: &str  = "ALIAS_ENV";
-const NO_ENV_ACTIVE: &str = "NO ENV";
+/***********/
+/* Globals */
+/***********/
 
+const ROOT_DIR: &str = ".alienv/envs";
 const ALIAS_FILE: &str = "aliases";
+
+const ENV_VAR: &str = "ALIAS_ENV";
+const NO_ENV_ACTIVE: &str = "NO ENV";
 
 const VALID_ENV_REGEX: &str = "[-_.A-Za-z0-9]+";
 
@@ -42,10 +51,10 @@ fn get_root_path() -> PathBuf {
     match dirs::home_dir() {
         Some(mut path) => {
             path.push(ROOT_DIR);
-            return path
-        },
+            return path;
+        }
 
-        None => panic!("No home directory detected")
+        None => panic!("No home directory detected"),
     }
 }
 
@@ -60,18 +69,16 @@ fn err_check<T, K>(r: Result<T, K>, err: &str) -> T {
     match r {
         Err(_) => {
             error(err);
-        },
+        }
 
-        Ok(val) => val
+        Ok(val) => val,
     }
 }
 
 fn is_cur_env(env: &str) -> bool {
     match env::var_os(ENV_VAR) {
-        Some(cur_env) => {
-            cur_env == env
-        },
-        None => false
+        Some(cur_env) => cur_env == env,
+        None => false,
     }
 }
 
@@ -90,7 +97,8 @@ fn env_exists(env: &str) -> bool {
     let root_dir = get_root_path();
     let envs = fs::read_dir(root_dir).expect("Unable to read directory");
     for temp in envs {
-        let unwrapped = temp.expect("Unable to read env")
+        let unwrapped = temp
+            .expect("Unable to read env")
             .file_name()
             .into_string()
             .unwrap();
@@ -105,31 +113,29 @@ fn env_exists(env: &str) -> bool {
 fn delete_alias_from_file(file: &str, alias: &str) -> bool {
     let search_text = format!("alias {}=", alias);
 
-    let mut f = err_check(
-        File::open(file),
-        "Unable to access aliases"
-    );
+    let mut f = err_check(File::open(file), "Unable to access aliases");
     let reader = BufReader::new(&f);
 
     /* Filter out the line containing the alias to delete. */
-    let lines : Vec<String> = reader.lines()
-        .map(|x| x.unwrap())
-        .collect();
-    let new_lines : Vec<String> = lines.clone()
+    let lines: Vec<String> = reader.lines().map(|x| x.unwrap()).collect();
+    let new_lines: Vec<String> = lines
+        .clone()
         .into_iter()
-        .filter_map(
-            |line| if !line.contains(&search_text) { Some(line) } else { None },
-        ).collect();
+        .filter_map(|line| {
+            if !line.contains(&search_text) {
+                Some(line)
+            } else {
+                None
+            }
+        })
+        .collect();
 
     /* If no line was deleted, it doesn't exist. */
     if new_lines.len() == lines.len() {
         return false;
     }
 
-    f = err_check(
-        File::create(file),
-        "Unable to write to file"
-    );
+    f = err_check(File::create(file), "Unable to write to file");
 
     /* Write filtered lines back. */
     for line in new_lines {
@@ -143,7 +149,7 @@ fn delete_alias_from_file(file: &str, alias: &str) -> bool {
 /* Get command to set ENV_VAR to status. */
 fn set_alias_var(output: &mut String, status: &str) {
     let shell = lib::get_shell();
-    let cmd : String = shell.setenv(ENV_VAR, status);
+    let cmd: String = shell.setenv(ENV_VAR, status);
     add_output_line(output, &cmd);
 }
 
@@ -151,14 +157,12 @@ fn set_alias_var(output: &mut String, status: &str) {
 fn unalias_all(output: &mut String, env: &str) {
     /* Open alias file. */
     let alias_file = get_alias_file(&env);
-    let f = err_check(
-        File::open(alias_file),
-        "Unable to access aliases"
-    );
+    let f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&f);
 
     /* Construct the string to unset the aliases. */
-    let unset_aliases : String = reader.lines()
+    let unset_aliases: String = reader
+        .lines()
         .map(|x| {
             if let Ok((alias, _)) = scan_fmt!(&x.unwrap(), "alias {}={}", String, String) {
                 format!("unalias {}", alias)
@@ -178,14 +182,12 @@ fn unalias_all(output: &mut String, env: &str) {
 /* Alias all commands in an env. */
 fn alias_all(output: &mut String, env: &str) {
     let alias_file = get_alias_file(&env);
-    let new_f = err_check(
-        File::open(alias_file),
-        "Unable to access aliases"
-    );
+    let new_f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&new_f);
 
     /* Construct the string to set the new aliases. */
-    let set_aliases : String = reader.lines()
+    let set_aliases: String = reader
+        .lines()
         .map(|x| x.unwrap())
         .collect::<Vec<String>>()
         .join(";");
@@ -208,7 +210,7 @@ fn setup(output: &mut String) {
     if !Path::exists(&root_dir) {
         err_check(
             fs::create_dir(root_dir),
-            "Cannot initialize alienv - insufficient permissions?"
+            "Cannot initialize alienv - insufficient permissions?",
         );
     }
 
@@ -217,8 +219,8 @@ fn setup(output: &mut String) {
         /* Set on first use. */
         None => {
             set_alias_var(output, NO_ENV_ACTIVE);
-        },
-        _ => ()
+        }
+        _ => (),
     }
 }
 
@@ -244,7 +246,7 @@ fn new(output: &mut String, env: &str) {
     /* Create dir for new env. */
     err_check(
         fs::create_dir(&root_dir),
-        "Cannot create directory - insufficient permissions?"
+        "Cannot create directory - insufficient permissions?",
     );
 
     /* Create new files. */
@@ -252,7 +254,7 @@ fn new(output: &mut String, env: &str) {
     aliases.push(ALIAS_FILE);
     err_check(
         File::create(aliases),
-        "Cannot create file - insufficient permissions?"
+        "Cannot create file - insufficient permissions?",
     );
 
     load(output, env);
@@ -311,7 +313,8 @@ fn show_all(output: &mut String) {
     let envs = fs::read_dir(root_dir).expect("Unable to read directory");
 
     for dir in envs {
-        let env = dir.expect("Unable to read environment")
+        let env = dir
+            .expect("Unable to read environment")
             .file_name()
             .into_string()
             .unwrap();
@@ -331,27 +334,24 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
                 error("No alias env active.");
             };
             cur_env
-        },
-        /* Set on first use. */
-        None => {
-            error(&format!("${} does not exist. Rerun setup.", ENV_VAR))
         }
-    }.into_string().unwrap();
+        /* Set on first use. */
+        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR)),
+    }
+    .into_string()
+    .unwrap();
 
     /* Add new alias to file. */
     let alias_file = get_alias_file(&env);
     let new_alias = format!("alias {}=\"{}\"", alias, command);
-    
+
     let mut f = OpenOptions::new()
         .write(true)
         .append(true)
         .open(&alias_file)
         .unwrap();
 
-    err_check(
-        writeln!(f, "{}", &new_alias),
-        "Unable to write alias."
-    );
+    err_check(writeln!(f, "{}", &new_alias), "Unable to write alias.");
 
     /* Set new alias. */
     add_output_line(output, &new_alias);
@@ -365,17 +365,14 @@ fn remove_alias(output: &mut String, alias: &str) {
                 error("No alias env active.");
             };
             cur_env
-        },
-        /* Set on first use. */
-        None => {
-            error(&format!("${} does not exist. Rerun setup.", ENV_VAR))
         }
-    }.into_string().unwrap();
+        /* Set on first use. */
+        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR)),
+    }
+    .into_string()
+    .unwrap();
 
-    let alias_file = get_alias_file(&env)
-        .into_os_string()
-        .into_string()
-        .unwrap();
+    let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
 
     /* Delete alias from file if possible. */
     if delete_alias_from_file(&alias_file, alias) {
@@ -393,7 +390,7 @@ fn remove_alias(output: &mut String, alias: &str) {
 fn main() {
     let mut output: String = String::new();
     setup(&mut output);
-    
+
     let matches = clap_app!(alienv =>
         (version: "1.0")
         (author: "Pranav K. <pmkumar@cmu.edu>")
@@ -428,19 +425,15 @@ fn main() {
     .get_matches_safe()
     .map_err(|e| err_clap(e))
     .expect("Invalid arguments");
-    
+
     if let Some(matches) = matches.subcommand_matches("new") {
         new(&mut output, matches.value_of("env_name").unwrap());
-        
     } else if let Some(matches) = matches.subcommand_matches("delete") {
         delete(&mut output, matches.value_of("env_name").unwrap());
-        
     } else if let Some(matches) = matches.subcommand_matches("load") {
         load(&mut output, matches.value_of("env_name").unwrap());
-        
     } else if let Some(_) = matches.subcommand_matches("show") {
         show_all(&mut output);
-        
     } else if let Some(matches) = matches.subcommand_matches("add") {
         let alias = matches.value_of("alias_name").unwrap();
         let command = matches.value_of("command").unwrap();
@@ -449,6 +442,6 @@ fn main() {
         let alias = matches.value_of("alias_name").unwrap();
         remove_alias(&mut output, alias);
     }
-    
+
     println!("{}", output);
 }

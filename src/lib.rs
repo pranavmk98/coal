@@ -1,8 +1,8 @@
 /* Adapted from https://github.com/eminence/setenv */
 
-use std::ffi::{OsStr};
 use std::convert::AsRef;
 use std::env::var_os;
+use std::ffi::OsStr;
 
 /// The types of shells we know about
 pub enum Shell {
@@ -20,7 +20,6 @@ pub fn get_shell() -> Shell {
     if cfg!(windows) {
         Shell::Windows
     } else {
-
         if let Some(shell) = var_os("BASH") {
             if shell.to_string_lossy().ends_with("/bash") {
                 return Shell::Bash;
@@ -83,19 +82,25 @@ impl Shell {
     pub fn setenv<K: AsRef<OsStr>, V: AsRef<OsStr>>(&self, k: K, v: V) -> String {
         match *self {
             Shell::Windows => {
-                return format!("set {}={}",
-                         k.as_ref().to_string_lossy(),
-                         v.as_ref().to_string_lossy())
+                return format!(
+                    "set {}={}",
+                    k.as_ref().to_string_lossy(),
+                    v.as_ref().to_string_lossy()
+                )
             }
             Shell::Tcsh => {
-                return format!("setenv {} '{}'",
-                         k.as_ref().to_string_lossy(),
-                         v.as_ref().to_string_lossy())
+                return format!(
+                    "setenv {} '{}'",
+                    k.as_ref().to_string_lossy(),
+                    v.as_ref().to_string_lossy()
+                )
             }
             _ => {
-                return format!("export {}='{}'",
-                         k.as_ref().to_string_lossy(),
-                         v.as_ref().to_string_lossy())
+                return format!(
+                    "export {}='{}'",
+                    k.as_ref().to_string_lossy(),
+                    v.as_ref().to_string_lossy()
+                )
             }
         }
     }

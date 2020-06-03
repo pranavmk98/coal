@@ -23,24 +23,24 @@ Setup complete. Restart your shell for the new changes to take effect.
 
 Create a new alias environment called `server`:
 ```
-$ alienv new server
+$ ae new server
 ```
 
 Add a new alias `hw` to run `echo 'Hello, World!'`:
 ```
-$ alienv add hw "echo 'Hello, World!'"
+$ ae add hw "echo 'Hello, World!'"
 $ hw
 Hello, World!
 ```
 
 Create a fresh new environment `client` with no aliases (and automatically switch to it):
 ```
-$ alienv new client
+$ ae new client
 ```
 
 Show existing environments and the currently active one:
 ```
-$ alienv show
+$ ae show
 server
 client*
 $ hw
@@ -49,8 +49,8 @@ zsh: command not found: hw
 
 Switch to the `server` environment:
 ```
-$ alienv load server
-$ alienv show
+$ ae load server
+$ ae show
 server*
 client
 $ hw
@@ -59,14 +59,14 @@ Hello, World!
 
 Delete the `client` environment:
 ```
-$ alienv delete client
-$ alienv show
+$ ae delete client
+$ ae show
 server*
 ```
 
 Remove the `hw` alias:
 ```
-$ alienv rem hw
+$ ae rem hw
 $ hw
 zsh: command not found: hw
 ```

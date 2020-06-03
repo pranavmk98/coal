@@ -82,6 +82,13 @@ fn is_cur_env(env: &str) -> bool {
     }
 }
 
+/* Get command to unset function. */
+fn get_unset_str() -> String {
+    let shell = lib::get_shell();
+    let unset: String = shell.get_unset_function();
+    return unset;
+}
+
 fn add_output_line(output: &mut String, line: &str) {
     output.push_str(&format!("{};", line));
 }
@@ -115,7 +122,7 @@ fn alias_exists(alias: &str) -> bool {
         Some(cur_env) => cur_env,
         None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR))
     }.into_string().unwrap();
-    let search_text = format!("alias {}=", alias);
+    let search_text = format!("function {}()", alias);
 
     let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
     let f = err_check(File::open(alias_file), "Unable to access aliases");
@@ -128,7 +135,7 @@ fn alias_exists(alias: &str) -> bool {
 
 /* Delete alias from file. Return true if successful, false if doesn't exist. */
 fn delete_alias_from_file(file: &str, alias: &str) -> bool {
-    let search_text = format!("alias {}=", alias);
+    let search_text = format!("function {}()", alias);
 
     let mut f = err_check(File::open(file), "Unable to access aliases");
     let reader = BufReader::new(&f);
@@ -181,8 +188,8 @@ fn unalias_all(output: &mut String, env: &str) {
     let unset_aliases: String = reader
         .lines()
         .map(|x| {
-            if let Ok((alias, _)) = scan_fmt!(&x.unwrap(), "alias {}={}", String, String) {
-                format!("unalias {}", alias)
+            if let Ok((alias, _)) = scan_fmt!(&x.unwrap(), "function {}{}", String, String) {
+                format!("{} {}", get_unset_str(), alias)
             } else {
                 error("Invalid alias file");
             }
@@ -199,15 +206,11 @@ fn unalias_all(output: &mut String, env: &str) {
 /* Alias all commands in an env. */
 fn alias_all(output: &mut String, env: &str) {
     let alias_file = get_alias_file(&env);
-    let new_f = err_check(File::open(alias_file), "Unable to access aliases");
-    let reader = BufReader::new(&new_f);
+    // let new_f = err_check(File::open(&alias_file), "Unable to access aliases");
+    // let reader = BufReader::new(&new_f);
 
     /* Construct the string to set the new aliases. */
-    let set_aliases: String = reader
-        .lines()
-        .map(|x| x.unwrap())
-        .collect::<Vec<String>>()
-        .join(";");
+    let set_aliases: String = format!("source {:?}", alias_file);
 
     /* Add unset aliases to output string. */
     if set_aliases != "" {
@@ -364,7 +367,7 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
 
     /* Add new alias to file. */
     let alias_file = get_alias_file(&env);
-    let new_alias = format!("alias {}=\"{}\"", alias, command);
+    let new_alias = format!("function {}(){{ {} }}", alias, command);
 
     let mut f = OpenOptions::new()
         .write(true)
@@ -375,7 +378,8 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
     err_check(writeln!(f, "{}", &new_alias), "Unable to write alias.");
 
     /* Set new alias. */
-    add_output_line(output, &new_alias);
+    let source = format!("source {:?}", alias_file);
+    add_output_line(output, &source);
 }
 
 /* Remove an alias from the current env. */
@@ -401,7 +405,7 @@ fn remove_alias(output: &mut String, alias: &str) {
 
     /* Delete alias from file if possible. */
     if delete_alias_from_file(&alias_file, alias) {
-        let temp = String::from(format!("unalias {}", alias));
+        let temp = String::from(format!("{} {}", get_unset_str(), alias));
         add_output_line(output, &temp);
     } else {
         error("No such alias.");

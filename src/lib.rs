@@ -105,6 +105,14 @@ impl Shell {
         }
     }
 
+    /// Returns the necessary command to unset a function
+    pub fn get_unset_function(&self) -> String {
+        match *self {
+            Shell::Zsh => String::from("unset -f"),
+            _ => String::from("unset -f")
+        }
+    }
+
     // /// A simple wrapper around `std::env::split_paths`
     // pub fn split_env<K: AsRef<OsStr>>(&self, k: K) -> Vec<OsString> {
     //     match std::env::var(k) {

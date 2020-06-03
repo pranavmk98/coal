@@ -12,7 +12,7 @@ and create/delete environments.
 Installing `alienv` requires [Cargo](https://crates.io/) to be installed.
 
 ```
-$ git checkout git@github.com:pranavmk98/alienv.git
+$ git clone git@github.com:pranavmk98/alienv.git
 $ cd alienv
 $ chmod +x setup.sh
 $ ./setup.sh
@@ -28,7 +28,7 @@ $ alienv new server
 
 Add a new alias `hw` to run `echo 'Hello, World!'`:
 ```
-$ alias add hw "echo 'Hello, World!'"
+$ alienv add hw "echo 'Hello, World!'"
 $ hw
 Hello, World!
 ```
@@ -66,7 +66,7 @@ server*
 
 Remove the `hw` alias:
 ```
-$ alias rem hw
+$ alienv rem hw
 $ hw
 zsh: command not found: hw
 ```

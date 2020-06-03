@@ -73,7 +73,7 @@ zsh: command not found: hw
 
 ## Motivation
 
-The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution is to introduce aliases in one's `.zshrc` (or dotfile of their choosing). However, that would require ensuring that these aliases are all distinct - perhaps a numbering system like `build1`, `build2` would suffice; however, a containerized solution is very appealing and would reduce this mental overhead involved in coming up with unique alias names across contexts.
+The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution is to introduce aliases in one's `.zshrc` (or dotfile of their choosing). However, that would require ensuring that these aliases are all distinct. Perhaps a numbering system like `build1`, `build2` would suffice, but a containerized solution is very appealing and would reduce this mental overhead involved in coming up with unique alias names across different contexts.
 
 ## Issues
 

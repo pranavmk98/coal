@@ -109,6 +109,23 @@ fn env_exists(env: &str) -> bool {
     return false;
 }
 
+/* Check if alias exists in current env. */
+fn alias_exists(alias: &str) -> bool {
+    let env = match env::var_os(ENV_VAR) {
+        Some(cur_env) => cur_env,
+        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR))
+    }.into_string().unwrap();
+    let search_text = format!("alias {}=", alias);
+
+    let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
+    let f = err_check(File::open(alias_file), "Unable to access aliases");
+    let reader = BufReader::new(&f);
+
+    let mut lines = reader.lines().map(|x| x.unwrap());
+    return lines.any(|line| line.contains(&search_text));
+
+}
+
 /* Delete alias from file. Return true if successful, false if doesn't exist. */
 fn delete_alias_from_file(file: &str, alias: &str) -> bool {
     let search_text = format!("alias {}=", alias);
@@ -341,6 +358,10 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
     .into_string()
     .unwrap();
 
+    if alias_exists(alias) {
+        error(&format!("Alias {} already exists", alias));
+    }
+
     /* Add new alias to file. */
     let alias_file = get_alias_file(&env);
     let new_alias = format!("alias {}=\"{}\"", alias, command);
@@ -371,6 +392,10 @@ fn remove_alias(output: &mut String, alias: &str) {
     }
     .into_string()
     .unwrap();
+
+    if !alias_exists(alias) {
+        error(&format!("No such alias: {}", alias));
+    }
 
     let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
 

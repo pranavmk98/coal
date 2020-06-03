@@ -279,23 +279,22 @@ fn new(output: &mut String, env: &str) {
 
 /* Delete an alias environment. */
 fn delete(output: &mut String, env: &str) {
-    let mut root_dir = get_root_path();
-    root_dir.push(env);
-
-    if !Path::exists(&root_dir) {
+    if !env_exists(&env) {
         error(&format!("No such environment: {}", env));
     }
-
+    
     /* Check environment variable. */
     if is_cur_env(env) {
         /* If deleting current env, unset all aliases and active env. */
         unalias_all(output, env);
-
+        
         /* Unset active env. */
         set_alias_var(output, NO_ENV_ACTIVE);
     }
-
+    
     /* Delete env directory. */
+    let mut root_dir = get_root_path();
+    root_dir.push(env);
     fs::remove_dir_all(&root_dir).expect("Unable to delete environment");
 }
 
@@ -303,7 +302,7 @@ fn delete(output: &mut String, env: &str) {
 fn load(output: &mut String, env: &str) {
     /* Ensure env exists. */
     if !env_exists(env) {
-        error(&format!("Environment {} does not exist.", env));
+        error(&format!("No such environment: {}", env));
     }
 
     /* Unset current aliases if needed. */
@@ -325,6 +324,7 @@ fn load(output: &mut String, env: &str) {
     alias_all(output, &env);
 }
 
+/* Display the existing environments. */
 fn show_all(output: &mut String) {
     let root_dir = get_root_path();
     let envs = fs::read_dir(root_dir).expect("Unable to read directory");
@@ -340,6 +340,39 @@ fn show_all(output: &mut String) {
         } else {
             output.push_str(&format!("echo '{}';", env));
         }
+    }
+}
+
+/* Display all the aliases for a given environment. */
+fn show_aliases(output: &mut String, env: &str) {
+    /* Ensure env exists. */
+    if !env_exists(env) {
+            error(&format!("No such environment: {}", env));
+    }
+
+    /* Open alias file. */
+    let alias_file = get_alias_file(&env);
+    let f = err_check(File::open(alias_file), "Unable to access aliases");
+    let reader = BufReader::new(&f);
+
+    /* Construct the string to output the aliases. */
+    let aliases: String = reader
+        .lines()
+        .map(|x| {
+            let y = x.unwrap();
+            if let Ok((alias, mut cmd)) = scan_fmt!(&y, "alias {}={/.*/}", String, String) {
+                cmd = cmd.replace("\"", "\\\"");
+                format!("echo \"{} -> {}\"", alias, cmd)
+            } else {
+                error("Invalid alias file");
+            }
+        })
+        .collect::<Vec<String>>()
+        .join(";");
+
+    /* Add unset aliases to output string. */
+    if aliases != "" {
+        add_output_line(output, &aliases);
     }
 }
 
@@ -433,7 +466,8 @@ fn main() {
             (@arg env_name: +required "Name of the environment to load")
         )
         (@subcommand show =>
-            (about: "Displays existing environments")
+            (about: "Displays existing environments (or aliases, if an env is provided)")
+            (@arg env_name: "Name of the environment to display aliases for")
         )
         (@subcommand add =>
             (about: "Adds alias to current environment")
@@ -453,16 +487,24 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("new") {
         new(&mut output, matches.value_of("env_name").unwrap());
+
     } else if let Some(matches) = matches.subcommand_matches("delete") {
         delete(&mut output, matches.value_of("env_name").unwrap());
+
     } else if let Some(matches) = matches.subcommand_matches("load") {
         load(&mut output, matches.value_of("env_name").unwrap());
-    } else if let Some(_) = matches.subcommand_matches("show") {
-        show_all(&mut output);
+
+    } else if let Some(matches) = matches.subcommand_matches("show") {
+        match matches.value_of("env_name") {
+            Some(env) => show_aliases(&mut output, env),
+            _ => show_all(&mut output)
+        }
+
     } else if let Some(matches) = matches.subcommand_matches("add") {
         let alias = matches.value_of("alias_name").unwrap();
         let command = matches.value_of("command").unwrap();
         add_alias(&mut output, alias, command);
+
     } else if let Some(matches) = matches.subcommand_matches("rem") {
         let alias = matches.value_of("alias_name").unwrap();
         remove_alias(&mut output, alias);

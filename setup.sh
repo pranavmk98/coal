@@ -1,7 +1,13 @@
 #!/bin/bash
 
+COLOR_GREEN="\033[32m"
+COLOR_RED="\033[31m"
+COLOR_YELLOW="\033[33m"
+COLOR_DEFAULT="\033[39m"
+
 func() {
-    local ROOT_DIR="${HOME}/.alienv/setup"
+    local FUNCTION_SOURCE="lenv_function.sh"
+    local ROOT_DIR="${HOME}/.lenv/setup"
 
     local RC_FILE=$(case $SHELL in
         (*bash)
@@ -15,22 +21,50 @@ func() {
             echo "${HOME}/.bashrc";;
     esac)
 
-    # Install binary to root directory.
+    printf "Using source file: ${COLOR_YELLOW}${RC_FILE}${COLOR_DEFAULT}\n"
+
+    # Step 1: Install binary to root directory.
+    printf "Installing dependencies and binary..."
     cargo install -q --path . --root ${ROOT_DIR}
+    if [ $? -ne 0 ]; then
+        printf " ${COLOR_RED}ERROR!${COLOR_DEFAULT}\n"
+        exit 1
+    fi
+    printf " ${COLOR_GREEN}complete!${COLOR_DEFAULT}\n"
 
-    # Copy over function script.
-    cp alienv_function.sh $ROOT_DIR
+    # Step 2: Copy over function script and source it.
+    printf "Setting up environment..."
+    cp $FUNCTION_SOURCE $ROOT_DIR
+    if [ $? -ne 0 ]; then
+        printf " ${COLOR_RED}ERROR!${COLOR_DEFAULT}\n"
+        exit 1
+    fi
+    source ${ROOT_DIR}/$FUNCTION_SOURCE
+    if [ $? -ne 0 ]; then
+        printf " ${COLOR_RED}ERROR!${COLOR_DEFAULT}\n"
+        exit 1
+    fi
+    printf " ${COLOR_GREEN}complete!${COLOR_DEFAULT}\n"
 
-    # Source function script and add it to rc file.
-    source ${ROOT_DIR}/alienv_function.sh
-    echo "source ${ROOT_DIR}/alienv_function.sh" >> ${RC_FILE}
+    # Step 3: Add sourcing to rc file.
+    printf "Setting up source file..."
+    echo "source ${ROOT_DIR}/${FUNCTION_SOURCE}" >> ${RC_FILE}
+    if [ $? -ne 0 ]; then
+        printf " ${COLOR_RED}ERROR!${COLOR_DEFAULT}\n"
+        exit 1
+    fi
+    printf " ${COLOR_GREEN}complete!${COLOR_DEFAULT}\n"
 }
 
+# Check for cargo
+printf "Checking for cargo..."
 if ! command -v "cargo" > /dev/null; then
-    echo "Error: cargo command not detected. Please install cargo and rerun setup."
+    printf "${COLOR_RED}ERROR!${COLOR_DEFAULT}\n"
+    printf "cargo command not detected. Please install cargo and rerun setup.\n"
     exit 1
 fi
+printf " ${COLOR_GREEN}complete!${COLOR_DEFAULT}\n"
 
 func
 unset -f func
-echo "Setup complete. Restart your shell for the new changes to take effect."
+printf "Setup complete. Restart your shell for the new changes to take effect.\n"

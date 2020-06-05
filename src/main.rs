@@ -24,7 +24,7 @@ mod lib;
 /* Globals */
 /***********/
 
-const ROOT_DIR: &str = ".alienv/envs";
+const ROOT_DIR: &str = ".lenv/envs";
 const ALIAS_FILE: &str = "aliases";
 
 const ENV_VAR: &str = "ALIAS_ENV";
@@ -227,7 +227,7 @@ fn setup(output: &mut String) {
     if !Path::exists(&root_dir) {
         err_check(
             fs::create_dir(root_dir),
-            "Cannot initialize alienv - insufficient permissions?",
+            "Cannot initialize lenv - insufficient permissions?",
         );
     }
 
@@ -449,7 +449,7 @@ fn main() {
     let mut output: String = String::new();
     setup(&mut output);
 
-    let matches = clap_app!(alienv =>
+    let matches = clap_app!(lenv =>
         (version: "1.0")
         (author: "Pranav K. <pmkumar@cmu.edu>")
         (about: "Alias environment manager")

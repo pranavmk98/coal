@@ -1,15 +1,15 @@
-# alienv
+# lenv
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/alienv/Rust)
 
-Alienv is an alias environment manager for the shell. It provides a system to
+`lenv` is an alias environment manager for the shell. It provides a system to
 containerize shell aliases into isolated environments, quickly switch between environments,
 and create/delete environments.
 
 
 ## Installation
 
-Installing `alienv` requires [Cargo](https://crates.io/) to be installed.
+Installing `lenv` requires [Cargo](https://crates.io/) to be installed.
 
 ```
 $ git clone git@github.com:pranavmk98/alienv.git
@@ -23,24 +23,24 @@ Setup complete. Restart your shell for the new changes to take effect.
 
 Create a new alias environment called `server`:
 ```
-$ ae new server
+$ lenv new server
 ```
 
 Add a new alias `hw` to run `echo 'Hello, World!'`:
 ```
-$ ae add hw "echo 'Hello, World!'"
+$ lenv add hw "echo 'Hello, World!'"
 $ hw
 Hello, World!
 ```
 
 Create a fresh new environment `client` with no aliases (and automatically switch to it):
 ```
-$ ae new client
+$ lenv new client
 ```
 
 Show existing environments and the currently active one:
 ```
-$ ae show
+$ lenv show
 server
 client*
 $ hw
@@ -49,8 +49,8 @@ zsh: command not found: hw
 
 Switch to the `server` environment:
 ```
-$ ae load server
-$ ae show
+$ lenv load server
+$ lenv show
 server*
 client
 $ hw
@@ -59,14 +59,14 @@ Hello, World!
 
 Delete the `client` environment:
 ```
-$ ae delete client
-$ ae show
+$ lenv delete client
+$ lenv show
 server*
 ```
 
 Remove the `hw` alias:
 ```
-$ ae rem hw
+$ lenv rem hw
 $ hw
 zsh: command not found: hw
 ```

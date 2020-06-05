@@ -1,6 +1,6 @@
 # lenv
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/alienv/Rust)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/lenv/Rust)
 
 `lenv` is an alias environment manager for the shell. It provides a system to
 containerize shell aliases into isolated environments, quickly switch between environments,
@@ -12,8 +12,8 @@ and create/delete environments.
 Installing `lenv` requires [Cargo](https://crates.io/) to be installed.
 
 ```
-$ git clone git@github.com:pranavmk98/alienv.git
-$ cd alienv
+$ git clone git@github.com:pranavmk98/lenv.git
+$ cd lenv
 $ chmod +x setup.sh
 $ ./setup.sh
 Setup complete. Restart your shell for the new changes to take effect.
@@ -77,4 +77,4 @@ The inspiration for this idea came from working on multiple projects at once - w
 
 ## Issues
 
-Please submit issues [here](https://github.com/pranavmk98/alienv/issues), and always feel free to create PRs!
+Please submit issues [here](https://github.com/pranavmk98/lenv/issues), and always feel free to create PRs!

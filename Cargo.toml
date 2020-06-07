@@ -1,5 +1,5 @@
 [package]
-name = "lenv"
+name = "coal"
 version = "0.1.0"
 authors = ["Pranav Kumar <pmkumar@andrew.cmu.edu>"]
 edition = "2018"

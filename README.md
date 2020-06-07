@@ -1,80 +1,85 @@
-# lenv
+# coal
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/lenv/Rust)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/coal/Rust)
 
-`lenv` is an alias environment manager for the shell. It provides a system to
-containerize shell aliases into isolated environments, quickly switch between environments,
-and create/delete environments.
+`coal` is an alias container manager for the shell. It provides a system to quickly add/remove shell aliases, isolate aliases into containers, quickly switch between, create, and delete containers.
 
+
+## Motivation
+
+The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution is to introduce aliases in one's `.bashrc` (or dotfile of their choosing). To avoid the mental overhead in coming up with unique aliases across contexts, a containerized solution was the most appealing.
 
 ## Installation
 
-Installing `lenv` requires [Cargo](https://crates.io/) to be installed.
+Installing `coal` requires [Cargo](https://crates.io/) to be installed.
 
 ```
-$ git clone git@github.com:pranavmk98/lenv.git
-$ cd lenv
+$ git clone git@github.com:pranavmk98/coal.git
+$ cd coal
 $ chmod +x setup.sh
 $ ./setup.sh
+Checking for cargo... complete!
+Using source file: /home/<user>/.zshrc
+Installing dependencies and binary... complete!
+Setting up environment... complete!
+Setting up source file... complete!
 Setup complete. Restart your shell for the new changes to take effect.
 ```
 
+Supported shells: `bash`, `zsh`, `ksh`
+
 ## Usage
 
-Create a new alias environment called `server`:
+Create a new alias container called `server`:
 ```
-$ lenv new server
+$ coal new server
 ```
 
 Add a new alias `hw` to run `echo 'Hello, World!'`:
 ```
-$ lenv add hw "echo 'Hello, World!'"
+$ coal add hw "echo 'Hello, World!'"
 $ hw
 Hello, World!
 ```
 
-Create a fresh new environment `client` with no aliases (and automatically switch to it):
+Create a fresh new container `client` with no aliases (and automatically switch to it):
 ```
-$ lenv new client
+$ coal new client
 ```
 
-Show existing environments and the currently active one:
+Show existing containers and the currently active one:
 ```
-$ lenv show
+$ coal show
 server
 client*
 $ hw
 zsh: command not found: hw
 ```
 
-Switch to the `server` environment:
+Switch to the `server` container:
 ```
-$ lenv load server
-$ lenv show
+$ coal load server
+$ coal show
 server*
 client
 $ hw
 Hello, World!
 ```
 
-Delete the `client` environment:
+Delete the `client` container:
 ```
-$ lenv delete client
-$ lenv show
+$ coal delete client
+$ coal show
 server*
 ```
 
 Remove the `hw` alias:
 ```
-$ lenv rem hw
+$ coal rem hw
 $ hw
 zsh: command not found: hw
 ```
 
-## Motivation
-
-The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution is to introduce aliases in one's `.zshrc` (or dotfile of their choosing). However, that would require ensuring that these aliases are all distinct. Perhaps a numbering system like `build1`, `build2` would suffice, but a containerized solution is very appealing and would reduce this mental overhead involved in coming up with unique alias names across different contexts.
-
 ## Issues
 
-Please submit issues [here](https://github.com/pranavmk98/lenv/issues), and always feel free to create PRs!
+Please submit issues [here](https://github.com/pranavmk98/coal/issues), and always feel free to create PRs!

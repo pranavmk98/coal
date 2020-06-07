@@ -1,5 +1,5 @@
 /*
- * Alias environment manager.
+ * Alias container manager.
  *
  * Author: Pranav Kumar <pmkumar@cmu.edu>
  */
@@ -24,13 +24,13 @@ mod lib;
 /* Globals */
 /***********/
 
-const ROOT_DIR: &str = ".lenv/envs";
+const ROOT_DIR: &str = ".coal/cons";
 const ALIAS_FILE: &str = "aliases";
 
-const ENV_VAR: &str = "ALIAS_ENV";
-const NO_ENV_ACTIVE: &str = "NO ENV";
+const COAL_VAR: &str = "COAL_ACTIVE";
+const NO_CON_ACTIVE: &str = "NO CON";
 
-const VALID_ENV_REGEX: &str = "[-_.A-Za-z0-9]+";
+const VALID_CON_REGEX: &str = "[-_.A-Za-z0-9]+";
 
 /********/
 /* Util */
@@ -58,9 +58,9 @@ fn get_root_path() -> PathBuf {
     }
 }
 
-fn get_alias_file(env: &str) -> PathBuf {
+fn get_alias_file(con: &str) -> PathBuf {
     let mut root_dir = get_root_path();
-    root_dir.push(env);
+    root_dir.push(con);
     root_dir.push(ALIAS_FILE);
     return root_dir;
 }
@@ -75,9 +75,9 @@ fn err_check<T, K>(r: Result<T, K>, err: &str) -> T {
     }
 }
 
-fn is_cur_env(env: &str) -> bool {
-    match env::var_os(ENV_VAR) {
-        Some(cur_env) => cur_env == env,
+fn is_cur_con(con: &str) -> bool {
+    match env::var_os(COAL_VAR) {
+        Some(cur_con) => cur_con == con,
         None => false,
     }
 }
@@ -86,44 +86,46 @@ fn add_output_line(output: &mut String, line: &str) {
     output.push_str(&format!("{};", line));
 }
 
-/* Must be a fully POSIX-compliant environment name. */
-fn is_valid_env_name(env: &str) -> bool {
-    let r = Regex::new(VALID_ENV_REGEX).unwrap();
-    return r.is_match(env) && env != NO_ENV_ACTIVE;
+/* Must be a fully POSIX-compliant container name. */
+fn is_valid_con_name(con: &str) -> bool {
+    let r = Regex::new(VALID_CON_REGEX).unwrap();
+    return r.is_match(con) && con != NO_CON_ACTIVE;
 }
 
-/* Check if env exists. */
-fn env_exists(env: &str) -> bool {
+/* Check if container exists. */
+fn con_exists(con: &str) -> bool {
     let root_dir = get_root_path();
-    let envs = fs::read_dir(root_dir).expect("Unable to read directory");
-    for temp in envs {
+    let cons = fs::read_dir(root_dir).expect("Unable to read directory");
+    for temp in cons {
         let unwrapped = temp
-            .expect("Unable to read env")
+            .expect("Unable to read container")
             .file_name()
             .into_string()
             .unwrap();
-        if env == unwrapped {
+        if con == unwrapped {
             return true;
         }
     }
     return false;
 }
 
-/* Check if alias exists in current env. */
+/* Check if alias exists in current container. */
 fn alias_exists(alias: &str) -> bool {
-    let env = match env::var_os(ENV_VAR) {
-        Some(cur_env) => cur_env,
-        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR))
+    let con = match env::var_os(COAL_VAR) {
+        Some(cur_con) => cur_con,
+        None => error(&format!("${} does not exist. Rerun setup.", COAL_VAR))
     }.into_string().unwrap();
     let search_text = format!("alias {}=", alias);
 
-    let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
+    let alias_file = get_alias_file(&con)
+        .into_os_string()
+        .into_string()
+        .unwrap();
     let f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&f);
 
     let mut lines = reader.lines().map(|x| x.unwrap());
     return lines.any(|line| line.contains(&search_text));
-
 }
 
 /* Delete alias from file. Return true if successful, false if doesn't exist. */
@@ -163,17 +165,17 @@ fn delete_alias_from_file(file: &str, alias: &str) -> bool {
     return true;
 }
 
-/* Get command to set ENV_VAR to status. */
+/* Get command to set COAL_VAR to status. */
 fn set_alias_var(output: &mut String, status: &str) {
     let shell = lib::get_shell();
-    let cmd: String = shell.setenv(ENV_VAR, status);
+    let cmd: String = shell.setenv(COAL_VAR, status);
     add_output_line(output, &cmd);
 }
 
-/* Unalias all commands in an env. */
-fn unalias_all(output: &mut String, env: &str) {
+/* Unalias all commands in a container. */
+fn unalias_all(output: &mut String, con: &str) {
     /* Open alias file. */
-    let alias_file = get_alias_file(&env);
+    let alias_file = get_alias_file(&con);
     let f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&f);
 
@@ -196,9 +198,9 @@ fn unalias_all(output: &mut String, env: &str) {
     }
 }
 
-/* Alias all commands in an env. */
-fn alias_all(output: &mut String, env: &str) {
-    let alias_file = get_alias_file(&env);
+/* Alias all commands in a container. */
+fn alias_all(output: &mut String, con: &str) {
+    let alias_file = get_alias_file(&con);
     let new_f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&new_f);
 
@@ -227,15 +229,15 @@ fn setup(output: &mut String) {
     if !Path::exists(&root_dir) {
         err_check(
             fs::create_dir(root_dir),
-            "Cannot initialize lenv - insufficient permissions?",
+            "Cannot initialize coal - insufficient permissions?",
         );
     }
 
     /* Check environment variable. */
-    match env::var_os(ENV_VAR) {
+    match env::var_os(COAL_VAR) {
         /* Set on first use. */
         None => {
-            set_alias_var(output, NO_ENV_ACTIVE);
+            set_alias_var(output, NO_CON_ACTIVE);
         }
         _ => (),
     }
@@ -245,22 +247,22 @@ fn setup(output: &mut String) {
 /* Subcommands */
 /***************/
 
-/* Create a new alias environment and switch to it. */
-fn new(output: &mut String, env: &str) {
-    /* Check if env is valid name. */
-    if !is_valid_env_name(env) {
-        error(&format!("Not a valid environment name. Only numbers, letters, period, underscore, and hyphen allowed."));
+/* Create a new alias container and switch to it. */
+fn new(output: &mut String, con: &str) {
+    /* Check if con is valid name. */
+    if !is_valid_con_name(con) {
+        error(&format!("Not a valid container name. Only numbers, letters, period, underscore, and hyphen allowed."));
     }
 
-    /* Ensure env doesn't exist. */
-    if env_exists(env) {
-        error(&format!("Environment {} already exists.", env));
+    /* Ensure container doesn't exist. */
+    if con_exists(con) {
+        error(&format!("Container {} already exists.", con));
     }
 
     let mut root_dir = get_root_path();
-    root_dir.push(env);
+    root_dir.push(con);
 
-    /* Create dir for new env. */
+    /* Create dir for new container. */
     err_check(
         fs::create_dir(&root_dir),
         "Cannot create directory - insufficient permissions?",
@@ -274,84 +276,84 @@ fn new(output: &mut String, env: &str) {
         "Cannot create file - insufficient permissions?",
     );
 
-    load(output, env);
+    load(output, con);
 }
 
-/* Delete an alias environment. */
-fn delete(output: &mut String, env: &str) {
-    if !env_exists(&env) {
-        error(&format!("No such environment: {}", env));
+/* Delete an alias container. */
+fn delete(output: &mut String, con: &str) {
+    if !con_exists(&con) {
+        error(&format!("No such container: {}", con));
     }
-    
+
     /* Check environment variable. */
-    if is_cur_env(env) {
-        /* If deleting current env, unset all aliases and active env. */
-        unalias_all(output, env);
-        
-        /* Unset active env. */
-        set_alias_var(output, NO_ENV_ACTIVE);
+    if is_cur_con(con) {
+        /* If deleting current con, unset all aliases and active con. */
+        unalias_all(output, con);
+
+        /* Unset active con. */
+        set_alias_var(output, NO_CON_ACTIVE);
     }
-    
-    /* Delete env directory. */
+
+    /* Delete container directory. */
     let mut root_dir = get_root_path();
-    root_dir.push(env);
-    fs::remove_dir_all(&root_dir).expect("Unable to delete environment");
+    root_dir.push(con);
+    fs::remove_dir_all(&root_dir).expect("Unable to delete container");
 }
 
-/* Load a new environment. */
-fn load(output: &mut String, env: &str) {
-    /* Ensure env exists. */
-    if !env_exists(env) {
-        error(&format!("No such environment: {}", env));
+/* Load a new container. */
+fn load(output: &mut String, con: &str) {
+    /* Ensure container exists. */
+    if !con_exists(con) {
+        error(&format!("No such container: {}", con));
     }
 
     /* Unset current aliases if needed. */
-    if let Some(cur_env) = env::var_os(ENV_VAR) {
-        if cur_env == env {
-            error("Environment already loaded");
+    if let Some(cur_con) = env::var_os(COAL_VAR) {
+        if cur_con == con {
+            error("Container already loaded");
         }
 
-        if cur_env != NO_ENV_ACTIVE {
+        if cur_con != NO_CON_ACTIVE {
             /* Unset all current aliases. */
-            unalias_all(output, &cur_env.into_string().unwrap());
+            unalias_all(output, &cur_con.into_string().unwrap());
         }
     }
 
-    /* Set active env to new env. */
-    set_alias_var(output, &env);
+    /* Set active container to new container. */
+    set_alias_var(output, &con);
 
-    /* Load aliases of new env. */
-    alias_all(output, &env);
+    /* Load aliases of new container. */
+    alias_all(output, &con);
 }
 
-/* Display the existing environments. */
+/* Display the existing containers. */
 fn show_all(output: &mut String) {
     let root_dir = get_root_path();
-    let envs = fs::read_dir(root_dir).expect("Unable to read directory");
+    let cons = fs::read_dir(root_dir).expect("Unable to read directory");
 
-    for dir in envs {
-        let env = dir
-            .expect("Unable to read environment")
+    for dir in cons {
+        let con = dir
+            .expect("Unable to read container")
             .file_name()
             .into_string()
             .unwrap();
-        if is_cur_env(&env) {
-            output.push_str(&format!("echo '{}*';", env));
+        if is_cur_con(&con) {
+            output.push_str(&format!("echo '{}*';", con));
         } else {
-            output.push_str(&format!("echo '{}';", env));
+            output.push_str(&format!("echo '{}';", con));
         }
     }
 }
 
-/* Display all the aliases for a given environment. */
-fn show_aliases(output: &mut String, env: &str) {
-    /* Ensure env exists. */
-    if !env_exists(env) {
-            error(&format!("No such environment: {}", env));
+/* Display all the aliases for a given container. */
+fn show_aliases(output: &mut String, con: &str) {
+    /* Ensure container exists. */
+    if !con_exists(con) {
+            error(&format!("No such container: {}", con));
     }
 
     /* Open alias file. */
-    let alias_file = get_alias_file(&env);
+    let alias_file = get_alias_file(&con);
     let f = err_check(File::open(alias_file), "Unable to access aliases");
     let reader = BufReader::new(&f);
 
@@ -376,17 +378,17 @@ fn show_aliases(output: &mut String, env: &str) {
     }
 }
 
-/* Add a new alias to the current env. */
+/* Add a new alias to the current container. */
 fn add_alias(output: &mut String, alias: &str, command: &str) {
-    let env = match env::var_os(ENV_VAR) {
-        Some(cur_env) => {
-            if cur_env == NO_ENV_ACTIVE {
-                error("No alias env active.");
+    let con = match env::var_os(COAL_VAR) {
+        Some(cur_con) => {
+            if cur_con == NO_CON_ACTIVE {
+                error("No alias container active.");
             };
-            cur_env
+            cur_con
         }
         /* Set on first use. */
-        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR)),
+        None => error(&format!("${} does not exist. Rerun setup.", COAL_VAR)),
     }
     .into_string()
     .unwrap();
@@ -396,7 +398,7 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
     }
 
     /* Add new alias to file. */
-    let alias_file = get_alias_file(&env);
+    let alias_file = get_alias_file(&con);
     let new_alias = format!("alias {}=\"{}\"", alias, command);
 
     let mut f = OpenOptions::new()
@@ -411,17 +413,17 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
     add_output_line(output, &new_alias);
 }
 
-/* Remove an alias from the current env. */
+/* Remove an alias from the current container. */
 fn remove_alias(output: &mut String, alias: &str) {
-    let env = match env::var_os(ENV_VAR) {
-        Some(cur_env) => {
-            if cur_env == NO_ENV_ACTIVE {
-                error("No alias env active.");
+    let con = match env::var_os(COAL_VAR) {
+        Some(cur_con) => {
+            if cur_con == NO_CON_ACTIVE {
+                error("No alias container active.");
             };
-            cur_env
+            cur_con
         }
         /* Set on first use. */
-        None => error(&format!("${} does not exist. Rerun setup.", ENV_VAR)),
+        None => error(&format!("${} does not exist. Rerun setup.", COAL_VAR)),
     }
     .into_string()
     .unwrap();
@@ -430,7 +432,10 @@ fn remove_alias(output: &mut String, alias: &str) {
         error(&format!("No such alias: {}", alias));
     }
 
-    let alias_file = get_alias_file(&env).into_os_string().into_string().unwrap();
+    let alias_file = get_alias_file(&con)
+        .into_os_string()
+        .into_string()
+        .unwrap();
 
     /* Delete alias from file if possible. */
     if delete_alias_from_file(&alias_file, alias) {
@@ -449,33 +454,33 @@ fn main() {
     let mut output: String = String::new();
     setup(&mut output);
 
-    let matches = clap_app!(lenv =>
+    let matches = clap_app!(coal =>
         (version: "1.0")
         (author: "Pranav K. <pmkumar@cmu.edu>")
-        (about: "Alias environment manager")
+        (about: "Alias container manager")
         (@subcommand new =>
-            (about: "Creates new environment and switch to it")
-            (@arg env_name: +required "Name of the environment to create")
+            (about: "Creates new container and switch to it")
+            (@arg con_name: +required "Name of the container to create")
         )
         (@subcommand delete =>
-            (about: "Deletes existing environment")
-            (@arg env_name: +required "Name of the environment to delete")
+            (about: "Deletes existing container")
+            (@arg con_name: +required "Name of the container to delete")
         )
         (@subcommand load =>
-            (about: "Switches to existing environment")
-            (@arg env_name: +required "Name of the environment to load")
+            (about: "Switches to existing container")
+            (@arg con_name: +required "Name of the container to load")
         )
         (@subcommand show =>
-            (about: "Displays existing environments (or aliases, if an env is provided)")
-            (@arg env_name: "Name of the environment to display aliases for")
+            (about: "Displays existing containers (or aliases, if a container is provided)")
+            (@arg con_name: "Name of the container to display aliases for")
         )
         (@subcommand add =>
-            (about: "Adds alias to current environment")
+            (about: "Adds alias to current container")
             (@arg alias_name: +required "Name of the alias to add")
             (@arg command:    +required "Command to alias")
         )
         (@subcommand rem =>
-            (about: "Removes alias from current environment")
+            (about: "Removes alias from current container")
             (@arg alias_name: +required "Name of the alias to remove")
         )
     )
@@ -486,17 +491,17 @@ fn main() {
     .expect("Invalid arguments");
 
     if let Some(matches) = matches.subcommand_matches("new") {
-        new(&mut output, matches.value_of("env_name").unwrap());
+        new(&mut output, matches.value_of("con_name").unwrap());
 
     } else if let Some(matches) = matches.subcommand_matches("delete") {
-        delete(&mut output, matches.value_of("env_name").unwrap());
+        delete(&mut output, matches.value_of("con_name").unwrap());
 
     } else if let Some(matches) = matches.subcommand_matches("load") {
-        load(&mut output, matches.value_of("env_name").unwrap());
+        load(&mut output, matches.value_of("con_name").unwrap());
 
     } else if let Some(matches) = matches.subcommand_matches("show") {
-        match matches.value_of("env_name") {
-            Some(env) => show_aliases(&mut output, env),
+        match matches.value_of("con_name") {
+            Some(con) => show_aliases(&mut output, con),
             _ => show_all(&mut output)
         }
 

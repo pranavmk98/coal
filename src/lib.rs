@@ -66,18 +66,6 @@ impl Shell {
     //     }
     // }
 
-    /// Prints to stdout the necessary command to change directory.
-    // pub fn cd<P: AsRef<OsStr>>(&self, p: P) {
-    //     match *self {
-    //         Shell::Windows => {
-    //             println!("cd /d \"{}\"", p.as_ref().to_string_lossy());
-    //         }
-    //         _ => {
-    //             println!("cd '{}';", p.as_ref().to_string_lossy());
-    //         }
-    //     }
-    // }
-
     /// Returns the necessary command to set an envionrment variable
     pub fn setenv<K: AsRef<OsStr>, V: AsRef<OsStr>>(&self, k: K, v: V) -> String {
         match *self {

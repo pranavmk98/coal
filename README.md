@@ -35,11 +35,11 @@ Create a new alias container called `server`:
 $ coal new server
 ```
 
-Add a new alias `hw` to run `echo 'Hello, World!'`:
+Add a new alias `hw` to run `echo 'Hello, World'`:
 ```
-$ coal add hw "echo 'Hello, World!'"
+$ coal add hw "echo 'Hello, World'"
 $ hw
-Hello, World!
+Hello, World
 ```
 
 Create a fresh new container `client` with no aliases (and automatically switch to it):
@@ -63,7 +63,7 @@ $ coal show
 server*
 client
 $ hw
-Hello, World!
+Hello, World
 ```
 
 Delete the `client` container:

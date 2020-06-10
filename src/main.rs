@@ -402,6 +402,11 @@ fn add_alias(output: &mut String, alias: &str, command: &str) {
         error(&format!("Alias {} already exists", alias));
     }
 
+    /* Ensure no newline in command. */
+    if command.contains("\n") {
+        error("Newline not allowed in command.");
+    }
+
     /* Add new alias to file. */
     let alias_file = get_alias_file(&con);
     let new_alias = format!("alias {}=\"{}\"", alias, command);

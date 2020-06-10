@@ -56,6 +56,12 @@ $ hw
 zsh: command not found: hw
 ```
 
+Show existing aliases in the `server` container:
+```
+$ coal show server
+hw -> "echo 'Hello world'"
+```
+
 Switch to the `server` container:
 ```
 $ coal load server

@@ -11,7 +11,7 @@ The inspiration for this idea came from working on multiple projects at once - w
 
 ## Installation
 
-Installing `coal` requires [Cargo](https://crates.io/) to be installed.
+Installing `coal` requires [Cargo](https://crates.io/) to be installed. Installation may take up to a minute
 
 ```
 $ git clone git@github.com:pranavmk98/coal.git
@@ -80,6 +80,13 @@ $ hw
 zsh: command not found: hw
 ```
 
-## Issues
+## Contributing
 
-Please submit issues [here](https://github.com/pranavmk98/coal/issues), and always feel free to create PRs!
+This project has been lightly tested on `bash`, `zsh`, and `ksh`. I've tried to
+make this tool as robust as possible, but if there's something I missed I'd love
+your help.
+
+* Want a new feature? Feel free to file an issue for a feature request.
+* Find a bug? Open an issue please, or even better send me a pull request.
+
+Contributions are always welcome at any time!

@@ -24,13 +24,18 @@ mod lib;
 /* Globals */
 /***********/
 
+/* Directory structure. */
 const ROOT_DIR: &str = ".coal/cons";
 const ALIAS_FILE: &str = "aliases";
+const VALID_CON_REGEX: &str = "[-_.A-Za-z0-9]+";
 
+/* Environment structure. */
 const COAL_VAR: &str = "COAL_ACTIVE";
 const NO_CON_ACTIVE: &str = "NO CON";
 
-const VALID_CON_REGEX: &str = "[-_.A-Za-z0-9]+";
+/* Colored asterisks. */
+// const DEFAULT_ASTERISK: &str = "\\033[39m*\\033[39m";
+const GREEN_ASTERISK: &str = "\\033[32m*\\033[39m";
 
 /********/
 /* Util */
@@ -338,7 +343,7 @@ fn show_all(output: &mut String) {
             .into_string()
             .unwrap();
         if is_cur_con(&con) {
-            output.push_str(&format!("echo '{}*';", con));
+            output.push_str(&format!("echo '{}{}';", con, DEFAULT_ASTERISK));
         } else {
             output.push_str(&format!("echo '{}';", con));
         }

@@ -2,12 +2,16 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pranavmk98/coal/Rust)
 
-`coal` is an alias container manager for the shell. It provides a system to quickly add/remove shell aliases, isolate aliases into containers, quickly switch between, create, and delete containers.
+`coal` is an alias container manager for the shell. It provides a system to quickly add/remove shell aliases, isolate aliases into containers, and quickly switch between, create, and delete containers.
 
 
 ## Motivation
 
-The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution is to introduce aliases in one's `.bashrc` (or dotfile of their choosing). To avoid the mental overhead in coming up with unique aliases across contexts, a containerized solution was the most appealing.
+The inspiration for this idea came from working on multiple projects at once - when juggling various tedious build commands, things can quickly get unwieldy. The natural solution? Introduce aliases in one's `.bashrc` (or dotfile of their choosing). 
+
+### Why containers?
+
+To avoid the mental overhead in coming up with unique aliases across contexts, a containerized solution was the most appealing.
 
 ## Installation
 

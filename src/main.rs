@@ -34,8 +34,8 @@ const COAL_VAR: &str = "COAL_ACTIVE";
 const NO_CON_ACTIVE: &str = "NO CON";
 
 /* Colored asterisks. */
-// const DEFAULT_ASTERISK: &str = "\\033[39m*\\033[39m";
-const GREEN_ASTERISK: &str = "\\033[32m*\\033[39m";
+const DEFAULT_ASTERISK: &str = "\\033[39m*\\033[39m";
+// const GREEN_ASTERISK: &str = "\\033[32m*\\033[39m";
 
 /********/
 /* Util */
